@@ -1,0 +1,113 @@
+Homework 9
+
+2.
+First,checkout the current commit into a new branch named "quote":
+$ git checkout v3.0 -b quote 
+
+Check with command "$ git branch" and it shows that:
+  master
+* quote
+
+Which means we are at the correct branch.
+
+3.
+I install the changes with patch command:
+$ patch -p1 < quote-3.0-patch.txt
+
+And it generates the following output:
+patching file src/cmp.c
+patching file src/diff.c
+patching file src/diff3.c
+patching file src/dir.c
+patching file src/sdiff.c
+patching file src/util.c
+
+4. 
+I learn the emacs command "C-x 4 a" by reading the documentation, which says that it opens a buffer for writing changeLog
+
+5.
+I open each of the file above with emacs, and use "C-x 4 a" to add comments in its changeLog.
+For example, I open src/cmp.c:
+$ emacs src/cmp.c
+Then use "C-x 4 a" to open the changeLog entry, and write:
+change all the ` into ' within code.
+Then modify all the files in the similar way and comments. Then, the changeLog would be like this:
+	 2019-06-05  Wenxuan Liu  <classwli@lnxsrv09.seas.ucla.edu>
+
+        * util.c: change all the ` into ' within code.
+
+        * sdiff.c: change all the ` into ' within code.
+
+        * dir.c: change all the ` into ' within code.
+
+        * diff3.c: change all the ` into ' within code.
+
+        * diff.c: change all the ` into ' within code.
+
+        * cmp.c: change all the ` into ' within code.
+
+6.
+Since my ChangeLog is accidentally put in src, I cp it to the current directory:
+$ cp src/ChangeLog .
+Uses ChangeLog to specify the commit message of a new commit:
+$ git add .
+$ git commit -F ChangeLog
+And it has the following output:
+ 7 files changed, 369 insertions(+), 43 deletions(-)
+ create mode 100644 quote-3.0-patch.txt
+
+7.
+Generate a new patch and store it:
+$ git format-patch -1 --stdout > formatted-patch.txt
+
+8.
+My partner is Shuhua Zhan.
+First, commit the current branch:
+$ git add .
+$ git commit -m "add a formatted-patch file."
+
+Then, checkout a new v3.0 branch again:
+$ git checkout v3.0 -b partner
+
+Upload partner's formatted-patch, and patch it with git am:
+$ git am formatted-patch.txt
+Which successfully shows:
+Applying: 2019-06-05 Shuhua Zhan <shuhua@lnxsrv09.seas.ucla.edu>
+...
+
+Then, build the program like the process in the lab:
+$ ./bootstrap
+$ wget http://web.cs.ucla.edu/classes/spring19/cs35L/assign/diffutils-gets.diff
+$ patch -p0< diffutils-gets.diff
+$ ./configure
+$ make
+$ make check
+
+And it builds successfully.
+
+9.
+Verify that my ChangeLog entry works by running the command:
+$ make distdir
+Then, there's a new directory named "diffutils-3.0.1-d27b" in the current position. 
+Inspect the ChangeLog in this directory:
+$ emacs diffutils-3.0.1-d27b/ChangeLog
+And we find the comments on the new commit is written by my partner Shuhua Zhan in an appropriate way.
+
+10.
+First quite the current linux server, then log in again with X11 enabled:
+$ ssh -X classwli@lnxsrv09.seas.ucla.edu
+
+Update the path:
+$ export PATH=/usr/local/cs/bin:$PATH
+And open Xquart locally.
+
+Then, clone the emacs git repository:
+$ git clone ~eggert/src/gnu/emacs
+
+Run gitk in the new emacs directory:
+$ cd emacs
+$ gitk
+
+Scrolling down the list of all the commits, I find that the nearest merge no newer than 2015-01-25 is the one committed by Paul Eggert on 2015-01-24 19:00:41, which fixed the problem that "indent/shell.sh (bar): Use '[ $# -eq 0 ]', not '[ $# == 0 ]'."
+By observing, there are several windows including one at the top showing all the commits along the time, one on the left showing all the diff made by this commit, and one on the right showing the corresponding files in the patch.
+

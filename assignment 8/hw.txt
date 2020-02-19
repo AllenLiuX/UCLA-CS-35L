@@ -1,0 +1,26 @@
+Homework 8
+
+1.
+Yes, my resulting network is still secure. 
+It is because that even though the other ones observed the data transmitted between the client and the receiver, all the data can only be decoded by receiver's private key. 
+However, since all the authentication process is encrypted by the public key, the observer has not way to get the private key.
+Therefore they cannot get the decrypted information.
+	(1) My network would still be secure. 
+After setting up the client-server keys, the key logger can only record the key strokes that I used to pass data with the keys, 
+which is done by computer without typing in the passphrase or keys. 
+Therefore, such key cannot be duplicated with any same key strokes again, 
+and the observer cannot get the passphrase of the private key. 
+After the authentication, the key is completely unique to the client and the receiver, 
+so the observer still cannot decode the data without the key or passphrase.
+	(2) My network would be insecure. 
+Because the observer can complete control the setup with the root access to the system. 
+They can change the files such as .ssh can modify the root password and add new user to grant access to the system. 
+The observer can also make a new public/private keys to monitor the communication between the observer and the client, or directly gain the previous private key. 
+Hence, these attacks with completely control can all make the network insecure.
+
+2. It is because that gpg2 --verify can only verify the public key that can match a file and a detached signature. 
+However, the private key cannot be successfully verified, and it cannot verify its owner or creator.
+Therefore, others still can get the file and encrypted it with the public key after modifying it, 
+which cannot be detected by the gpg --verify command.
+In order the solve this problem, we can use certificate authorities(CAs) to verify the owner and send keys securely. 
+Hence, the receiver can make sure that the keys is corresponding to the right one.

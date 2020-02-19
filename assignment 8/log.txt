@@ -1,0 +1,78 @@
+1. Connect
+First connect BeagleBone to my computer and go with the steps on piazza to set up the BeagleBone.
+These steps including:
+Install the drivers
+ssh debian@192.168.8.1 with password "temppwd"
+Connect to wifi
+sudo apt-get update
+sudo apt-get install xauth
+sudo apt-get install xvfb
+sudo apt-get install firefox-esr-l10n-en-gb
+
+2. Set up
+I set up a new hostname for my BeagleBone:
+hostname vincentl
+
+Then I set up a new non-root user and change its password:
+useradd vincentl
+passwd vincentl
+Then type "password" twice as the password.
+
+Therefore a new user "vincentl" with password "password" is added on the BeagleBone.
+Lastly, I set up a home directory for the new user:
+mkdir /home/vincentl
+
+3. Get IP address
+Use the "ifconfig" command to get the IP address of my BeagleBone, which shows at "inet addr" of wlan0 that my IP address is:
+192.168.1.23
+Similarly, I get my partner Ann's IP address, which is:
+172.20.10.5
+
+4. Log in set up
+To log in without password, I first create a key pair:
+ssh key-gen
+
+Then I make a ".shh" directory to allow my parter log in:
+cd /home/vincentl
+mkdir .ssh
+
+And change ownership and permission on .ssh directory:
+chown -R vincentl .ssh
+chmod 700 .ssh
+
+5. Log in
+I first test the reachability of the host:
+ping 
+Then I copy the generated key on to my partner 's host:
+ssh-copy-id -i vincentl@192.168.1.23
+And type yes for the question and type my password "password".
+Therefore I successfully log in the host.
+
+6. Test logging in
+Get the environment variables for connection with the following command:
+eval `ssh-agent`
+Then copy they key, and type in the public key:
+ssh-add
+Finally, ssh onto the host:
+ssh vincentl@192.168.1.23
+And it doesn't require me to type in the password to log in.
+
+7. Test with applications
+Log onto my partner 's BeagleBone through my host
+ssh -X myusername@172.20.10.5
+Then sequentially type the following commands:
+xterm
+gedit
+firefox
+
+They all work successfully with windows popping up.
+
+
+
+
+
+
+
+
+
+

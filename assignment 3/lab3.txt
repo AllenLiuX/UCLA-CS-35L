@@ -1,0 +1,60 @@
+Lab3
+1. Check the problem
+Use "ls -aA" and "ls -Aa" to compare, 
+and notice that they lists the same directories including "." and "..", 
+which shows that the overriding error exists.
+
+2. Download
+Grab the Coreutils 8.29 source code 
+compressed tarball, signature, and the GNU keyring by:
+"wget ftp://ftp.gnu.org/gnu/coreutils/coreutils-8.29.tar.xz"
+"wget ftp://ftp.gnu.org/gnu/coreutils/coreutils-8.29.tar.xz.sig"
+"wget https://ftp.gnu.org/gnu/gnu-keyring.gpg"
+unzip the coreutils-8.29 by "tar -xvJf coreutils-8.29.tar.xz"
+
+3. Verify
+verify its signature with the GNU keyring by 
+"gpg --verify --keyring ./gnu-keyring.gpg coreutils-8.29.tar.xz.sig".
+The warning is shown as followed:
+gpg: WARNING: This key is not certified with a trusted signature!
+gpg:          There is no indication that the signature belongs to the owner.
+Primary key fingerprint: 6C37 DC12 121A 5006 BC1D  B804 DF6F D971 3060 37D9
+
+4. Install
+CD into Coreutils-8.29, and read the INTALL, especially the prefix part.
+Make a directory by mkdir ~/coreutilsInstall, 
+and cd into it to get its pathname by 'pwd'
+Then, './configure --prefix=/u/eng/class/classwli/coreutilsInstall'
+to configure the package for the system, 
+then type 'make' to compile the package,
+and finally type 'make install' to install the programs.
+Problems: the make install didn't work at first because of permission denial. 
+But I add the prefix so that all the files can be installed in my home 
+directory, and the problem is solved.
+
+5. Reproducing the bug
+Change the directory by 'cd ~/coreutilsInstall/bin' and run the two commands:
+./ls -aA
+./ls -Aa
+And we notice that they still generates the '.' and '..' Directories
+
+6. Patch
+First we change directory by 'cd ~/coreutils-8.29'.
+Then we copy the patch of Message #10 into a file named patch_file
+And install the patch by 'patch -p1 < patch_file'
+Then, remake the ls with the following commands:
+./configure --prefix=/u/eng/class/classwli/coreutilsInstall
+make
+make install
+
+7. Check
+Change the directory by 'cd ~/coreutilsInstall/bin' and run the two commands:
+./ls -aA
+./ls -Aa
+And now we can see that the "./ls -aA" doesn't generate the '.' and '..',
+which means the patch works successfully for the modified ls and -A no longer 
+overrides -a.
+Change the directory into home directory, and run 'ls -aA', 
+we can see that it still generates '.' and '..', 
+which means unmodified ls did NOT work.
+

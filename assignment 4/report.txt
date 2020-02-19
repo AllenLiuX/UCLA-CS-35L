@@ -1,0 +1,276 @@
+Laboratory 5
+1. Create files
+Generates a file named random.txt with random 5,000,000 bytes:
+head --bytes=5000000 /dev/urandom > bigfile.txt
+Build executable files for tr2b.c and tr2u.c
+gcc -std=c11 tr2b.c -o tr2b
+gcc -std=c11 tr2u.c -o tr2u
+
+2. Test with strace
+A) Copy One File to Another
+First, we test tr2b with strace command:
+strace -c ./tr2b "abcdefg" "ABCDEFG"<bigfile.txt>tr2b.txt
+And it shows the following output:
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+ 38.88    0.000187           0       611           write
+ 26.20    0.000126           0       613           read
+ 11.43    0.000055           6         9           mmap
+  6.86    0.000033           8         4           mprotect
+  4.37    0.000021           5         4           fstat
+  3.33    0.000016           8         2           open
+  2.29    0.000011          11         1           munmap
+  1.66    0.000008           8         1         1 access
+  1.66    0.000008           8         1           execve
+  1.46    0.000007           4         2           close
+  1.04    0.000005           5         1           brk
+  0.83    0.000004           4         1           arch_prctl
+------ ----------- ----------- --------- --------- ----------------
+100.00    0.000481                  1250         1 total
+
+Then, we test tr2u with strace command:
+strace -c ./tr2u "abcdefg" "ABCDEFG"<bigfile.txt>tr2u.txt
+It shows the following output:
+Error: Input failure% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+ 55.00   20.987814           4   5000001           write
+ 45.00   17.174100           3   5000002           read
+  0.00    0.000000           0         2           open
+  0.00    0.000000           0         2           close
+  0.00    0.000000           0         2           fstat
+  0.00    0.000000           0         7           mmap
+  0.00    0.000000           0         4           mprotect
+  0.00    0.000000           0         1           munmap
+  0.00    0.000000           0         1           brk
+  0.00    0.000000           0         1         1 access
+  0.00    0.000000           0         1           execve
+  0.00    0.000000           0         1           arch_prctl
+------ ----------- ----------- --------- --------- ----------------
+100.00   38.161914              10000025         1 total
+
+(And it takes about 5 minutes...)
+
+
+B) Copy to Terminal
+Test tr2b with the command:
+
+It shows the following output(except the random bytes after modifying
+):
+time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+ 97.78    0.068618           3     20020           write
+  2.22    0.001557           3       613           read
+  0.00    0.000000           0         2           open
+  0.00    0.000000           0         2           close
+  0.00    0.000000           0         4           fstat
+  0.00    0.000000           0         9           mmap
+  0.00    0.000000           0         4           mprotect
+  0.00    0.000000           0         1           munmap
+  0.00    0.000000           0         1           brk
+  0.00    0.000000           0         1         1 access
+  0.00    0.000000           0         1           execve
+  0.00    0.000000           0         1           arch_prctl
+------ ----------- ----------- --------- --------- ----------------
+100.00    0.070175                 20659         1 total
+
+Test tr2u with the command:
+strace -c ./tr2u "abcdefg" "ABCDEFG"<random.txt
+It shows the following output(except the random bytes after modifying
+):
+
+------ ----------- ----------- --------- --------- ----------------
+ 57.01   23.571314           5   5000001           write
+ 42.99   17.773082           4   5000002           read
+  0.00    0.000037           5         7           mmap
+  0.00    0.000030           8         4           mprotect
+  0.00    0.000017           9         2           open
+  0.00    0.000011          11         1           munmap
+  0.00    0.000008           4         2           fstat
+  0.00    0.000007           4         2           close
+  0.00    0.000004           4         1           arch_prctl
+  0.00    0.000000           0         1           brk
+  0.00    0.000000           0         1         1 access
+  0.00    0.000000           0         1           execve
+------ ----------- ----------- --------- --------- ----------------
+100.00   41.344510              10000025         1 total
+
+Thus, we can summarize the calls that these two programmings take:
+	Copying one file to another	 	 Copying to terminal
+tr2b		1250					20659 
+tr2u		10000025				10000025
+
+In all, the tr2u takes much longer time and much more calls than tr2b.
+It is because that tr2u takes characters one by one with system call read and write, and it slows the function.
+
+
+3. Test with Time
+A) Copy One File to Another
+For tr2b:
+time ./tr2b "abcdefg" "ABCDEFG"<bigfile.txt>otr2b.txt
+The result is:
+real	0m0.334s
+user	0m0.281s
+sys	0m0.007s
+
+For tr2u:
+time ./tr2u "abcdefg" "ABCDEFG"<bigfile.txt>tr2u.txt
+The result is:
+real	0m10.185s
+user	0m1.332s
+sys	0m8.806s
+
+
+B) Copy to Terminal
+time ./tr2b "abcdefg" "ABCDEFG"<bigfile.txt
+The result is:
+real	0m2.715s
+user	0m0.303s
+sys	0m0.121s
+
+time ./tr2u "abcdefg" "ABCDEFG"<bigfile.txt
+The result is:
+real	0m19.233s
+user	0m1.813s
+sys	0m11.160s
+
+4. Conclusion
+tr2b is about 10 times faster than tr2u, and tr2u takes significantly much more time for system call.
+Thus, buffered functions like read() and write() would use much less time, while the unbuffered functions like getchar() and putchar() would use much more system calls and are therefore slower.
+
+
+####################
+Homework 5
+First, generates files with 0, 100, 10,000, 1,000,000 lines with the following commands:
+touch test1.txt
+base64 /dev/urandom | head -n 100 > test2.txt
+base64 /dev/urandom | head -n 10000 > test3.txt
+base64 /dev/urandom | head -n 1000000 > test4.txt 
+Therefore test1.txt contains 0 lines, test2.txt contains 100 lines, test3.txt contains 10,000 lines, and test4.txt contains 1,000,000 lines.
+
+Upload sfrob.c and sfrobu.c, and compile them with the following commands:
+gcc -std=c11 sfrob.c -o sfrob
+gcc -std=c11 sfrobu.c -o sfrobu
+
+
+For input file with zero line, the five commands separately use the following time:
+$ time ./sfrob <test1.txt 
+real	0m0.002s
+user	0m0.000s
+sys	0m0.001s
+
+$ time ./sfrobu <test1.txt 
+real	0m0.002s
+user	0m0.001s
+sys	0m0.001s
+
+$ time ./sfrobs <test1.txt 
+real	0m0.007s
+user	0m0.005s
+sys	0m0.002s
+
+$ time ./sfrobu -f <test1.txt 
+real	0m0.002s
+user	0m0.000s
+sys	0m0.001s
+
+$ time ./sfrobs -f <test1.txt 
+real	0m0.005s
+user	0m0.002s
+sys	0m0.005s
+
+For input file with 100 line, the five commands separately use the following time:
+$ time ./sfrob <test2.txt >/dev/null
+real	0m0.002s
+user	0m0.000s
+sys	0m0.002s
+
+$ time ./sfrobu <test2.txt >/dev/null
+real	0m0.011s
+user	0m0.002s
+sys	0m0.009s
+
+$ time ./sfrobs <test2.txt >/dev/null
+real	0m0.008s
+user	0m0.001s
+sys	0m0.007s
+
+$ time ./sfrobu -f <test2.txt >/dev/null
+real	0m0.011s
+user	0m0.003s
+sys	0m0.007s
+
+$ time ./sfrobs -f <test2.txt >/dev/null
+real	0m0.005s
+user	0m0.002s
+sys	0m0.006s
+
+For input file with 10,000 line, the five commands separately use the following time:
+$ time ./sfrob <test3.txt >/dev/null
+real	0m0.038s
+user	0m0.036s
+sys	0m0.001s
+
+$ time ./sfrobu <test3.txt >/dev/null
+real	0m0.892s
+user	0m0.197s
+sys	0m0.694s
+
+$ time ./sfrobs <test3.txt >/dev/null
+real	0m0.008s
+user	0m0.004s
+sys	0m0.008s
+
+$ time ./sfrobu -f <test3.txt >/dev/null
+real	0m0.875s
+user	0m0.204s
+sys	0m0.670s
+
+$ time ./sfrobs -f <test3.txt >/dev/null
+real	0m0.008s
+user	0m0.002s
+sys	0m0.010s
+
+For input file with 1,000,000 line, the five commands separately use the following time:
+$ time ./sfrob <test4.txt >/dev/null
+real	0m3.598s
+user	0m3.499s
+sys	0m0.098s
+
+$ time ./sfrobu <test4.txt >/dev/null
+real	1m33.091s
+user	0m21.365s
+sys	1m11.722s
+
+$ time ./sfrobs <test4.txt >/dev/null
+real	0m0.256s
+user	0m0.165s
+sys	0m0.202s
+
+$ time ./sfrobu -f <test4.txt >/dev/null
+real	1m29.244s
+user	0m21.780s
+sys	1m7.460s
+
+$ time ./sfrobs -f <test4.txt >/dev/null
+real	0m0.250s
+user	0m0.162s
+sys	0m0.198s
+
+
+After modifying the frobcmp function in sfrobu.c and sfrob.c, we can count the number of comparisons it takes when processing. We get the following results:
+Number of comparisons		number of input lines
+	5				9
+	7				13
+	13				25
+......
+
+And by observing the output, we can generalize the following relationship:
+For sfrobu:
+the number of comparisons = 2 * the number of input lines - 1
+For sfrob:
+the number of comparisons = 2 * the number of input lines - 1
+
+
+Conclusion:
+The sfrobu and sfrobu -f take much longer time than sfrobs, sfrob and sfrob -f. sfrobs takes the least time. It is because that the buffered ones take less system calls, which saves time.
+

@@ -1,0 +1,45 @@
+1. Check version
+Use 'sort --version' to check the version of current sort command, which has the following output:
+sort (GNU coreutils) 8.22
+It shows that the version is 8.22, which is newer than 8.6
+
+2. Create file
+Use the following command to create a file with 2^24 floats expressed in hexadecimal form(0xffffff):
+od -An -tfF -N 0xffffff </dev/urandom > random.txt
+However, we noticed that the floats do not always begin with new line, so we then replace all the blanks with new-line characters and delete empty lines:
+od -An -tfF -N 0xffffff </dev/urandom | tr -s '[:blank:]' '[\n]' | sed '/^$/d'> random.txt
+
+3. Compare the performance
+Firstly, set the path environment variable:
+export PATH=/usr/local/cs/bin:$PATH
+Then, use time -p and sort -g to test the performances with different number of threads:
+Without parallel:
+time -p sort -g random.txt > /dev/null
+real 8.95
+user 45.57
+sys 0.62
+
+With 2 threads:
+$ time -p sort -g --parallel=2 random.txt > /dev/null
+real 24.00
+user 44.72
+sys 0.60
+
+With 4 threads:
+$ time -p sort -g --parallel=4 random.txt > /dev/null
+real 13.72
+user 45.04
+sys 0.61
+
+With 8 threads:
+$ time -p sort -g --parallel=8 random.txt > /dev/null
+real 9.38
+user 45.94
+sys 0.71
+
+4. Conclusion
+As we can see the time it takes for each test with different number of threads, the performance of the one without parallel is the best, 
+while the one with 8 threads take the second least time. Besides, the less the threads are, the less the real time it takes and the worse it performs.
+
+
+

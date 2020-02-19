@@ -1,0 +1,34 @@
+Questions:
+2. Which sh之后的结果不一样？
+4. Which /usr/bin/emacs?
+
+To cut the text, press C-w .
+To copy the text, press M-w .
+To paste the text, press C-y .
+
+查keystroke
+C-h l	view-lossage	这个命令将打开新的缓冲区，并显示最后键入的 100 个字符。
+command prefix 或者 keystroke C-h		这个命令用于描述给定命令前缀 或者键盘输入 的所有可能的命令和函数。
+C-h c keystroke	describe-key-briefly	这个命令将在迷你缓冲区中报告与给定键盘输入 进行了绑定的函数名称。
+C-h k keystroke	describe-key	这个命令将打开新的帮助缓冲区窗口，其中描述了与给定键盘输入 进行了绑定的函数。
+
+P18 Movement
+C-a Move to the beginning of the line (move-beginning-of-line).
+C-e End Move to the end of the line (move-end-of-line).
+M-f Move forward one word (forward-word). 
+M-b Move backward one word (backward-word).
+C-n Move down one screen line (next-line).
+C-p Move up one screen line (previous-line).
+
+M-g g Read a number n and move point to the beginning of line number n (goto-line). 
+
+P101 word search
+M-s w
+
+C-x u 撤销
+C-x b 切换buffer
+
+C-d Delete the character after point (delete-char).
+C-k Kill to the end of the line (kill-line).
+M-d Kill forward to the end of the next word (kill-word).
+

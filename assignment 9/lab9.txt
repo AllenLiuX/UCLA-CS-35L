@@ -1,0 +1,191 @@
+Lab 9
+1. 
+Make a directory ‘gitroot’:
+$ mkdir gitroot
+$ cd gitroot 
+
+Get a copy of Diffutils repository in Git format:
+$ git clone ~eggert/src/gnu/diffutils
+$ cd diffutils
+
+2. 
+Get a log of changes to Diffutils’ master branch and save it:
+$ git log > git-log.txt
+
+3. 
+Generate a list of tags used for Diffutils and save it:
+$ git tag > git-tags.txt
+
+4. 
+To find the commit entitled “maint: quote 'like this' or "like this", not `like this'”, we can first find it using git log.
+Then, we pipeline it to grep and match with its beginning:
+$ git log --grep maint:\ quote
+
+By inspection, we find that the commit ID is 62ca21c8c1a5aa3488589dcb191a4ef04ae9ed4f. So we for the patch and put it into quote-patch.txt:
+$ git format-patch -1 62ca21c8c1a5aa3488589dcb191a4ef04ae9ed4f --stdout >quote-patch.txt
+
+5. 
+Check out v3.0:
+$ git checkout v3.0
+
+6.
+Apply the patch on the current version:
+$ patch -p1 < quote-patch.txt
+
+It says "can't find file to patch at input line 62
+Perhaps you used the wrong -p or --strip option?
+The text leading up to this was:
+--------------------------
+......"
+We type RETURN to skip those files, including doc/diagmeet.note, a/doc/diffutils.texi, and a/man/help2man.
+
+7. 
+Use the git status command to get an overview of what happened:
+$ git status
+
+And I get the following output:
+# HEAD detached at v3.0
+# Changes not staged for commit:
+#   (use "git add <file>..." to update what will be committed)
+#   (use "git checkout -- <file>..." to discard changes in working directory)
+#
+#	modified:   NEWS
+#	modified:   README
+#	modified:   TODO
+#	modified:   doc/diagmeet.note
+#	modified:   ms/config.bat
+#	modified:   ms/config.site
+#	modified:   po/en.po
+#	modified:   src/analyze.c
+#	modified:   src/cmp.c
+#	modified:   src/context.c
+#	modified:   src/diff.c
+#	modified:   src/diff.h
+#	modified:   src/diff3.c
+#	modified:   src/dir.c
+#	modified:   src/ifdef.c
+#	modified:   src/io.c
+#	modified:   src/sdiff.c
+#	modified:   src/side.c
+#	modified:   src/system.h
+#	modified:   src/util.c
+#	modified:   tests/help-version
+#
+# Untracked files:
+#   (use "git add <file>..." to include in what will be committed)
+#
+#	NEWS.orig
+#	README-hacking.orig
+#	README-hacking.rej
+#	README.orig
+#	README.rej
+#	cfg.mk.orig
+#	cfg.mk.rej
+#	git-log.txt
+#	git-tags.txt
+#	ms/config.site.orig
+#	quote-patch.txt
+#	src/cmp.c.orig
+#	src/context.c.orig
+#	src/diff.c.orig
+#	src/diff.c.rej
+#	src/diff.h.orig
+#	src/diff3.c.orig
+#	src/diff3.c.rej
+#	src/dir.c.orig
+#	src/sdiff.c.orig
+#	src/system.h.orig
+#	src/util.c.orig
+#	tests/help-version.orig
+no changes added to commit (use "git add" and/or "git commit -a")
+
+8.
+Learn emacs by emacs README, and try C-x v = and C-x v u.
+
+9.
+Use emacs to open the files listed in "modified files" that are not "*.c" files and apply "C-x v u" to each of them to revert changes.
+Then, use "git status" to check and we find that only *.c files are modified now.
+#	modified:   src/analyze.c
+#	modified:   src/cmp.c
+#	modified:   src/context.c
+#	modified:   src/diff.c
+#	modified:   src/diff3.c
+#	modified:   src/dir.c
+#	modified:   src/ifdef.c
+#	modified:   src/io.c
+#	modified:   src/sdiff.c
+#	modified:   src/side.c
+#	modified:   src/util.c
+
+Then, check each *.c file with emacs's vc-diff mode "C-x v =". Use "C-u C-c C-c" to go to the change and inspect, and revert all the changes other than changes to character string constants by differ-apply-hunk (C-u C-c C-a).
+
+10.
+Use find command to find the files ending with c.rej:
+$ find . -name "*.c.rej"
+
+And we find there are two files needed to be modified: src/diff.c and src/diff3.c
+Then, use emacs to open them and replace corresponding ` with ' according to the instruction in src/diff.c.rej and src/diff3.c.rej
+
+11.
+remove all untracked files:
+$ git clean -f
+
+12.
+Check the files with "$ git status", which has the following output:
+$ git status
+# HEAD detached at v3.0
+# Changes not staged for commit:
+#   (use "git add <file>..." to update what will be committed)
+#   (use "git checkout -- <file>..." to discard changes in working directory)
+#
+#	modified:   src/cmp.c
+#	modified:   src/diff.c
+#	modified:   src/diff3.c
+#	modified:   src/dir.c
+#	modified:   src/sdiff.c
+#	modified:   src/util.c
+#
+
+Then, use "$ git diff" to generate a patch and put them in a file:
+$ git diff > quote-3.0-patch.txt
+
+13.
+Following the commands, first I run:
+$ ./bootstrap
+
+Then I apply a patch:
+$ wget http://web.cs.ucla.edu/classes/spring19/cs35L/assign/diffutils-gets.diff
+$ patch -p0< diffutils-gets.diff
+
+Then I run make to compile:
+$ ./configure
+$ make
+$ make check
+
+Lastly, I run some tests on diff commands such as "diff . src" and "diff --help" to make sure the diff command works, and all the ` in output have been changed to '.
+
+14.
+Do the sanity test.
+First create a branch named "Edited_Version" for the edited version of my diff directory:
+$ git branch Edited_Version
+
+Then I copy the source code to a new directory named diffutils-3.0-patch:
+$ cp -r src ../diffutils-3.0-patch
+
+And clone the original source code again and put it to a new directory named diffutils-3.0:
+$ cd ..
+$ git clone ~eggert/src/gnu/diffutils ./diffutils_original
+$ cp -r ./diffutils_original/src diffutils-3.0
+
+Lastly, run my implementation of diff and put the output into a file named "quote-3.0-test.txt"with command:
+$ diffutils/src/diff -pru diffutils-3.0 diffutils-3.0-patch >quote-3.0-test.txt
+
+15.
+Firstly, copy quote-3.0-patch.txt from the diffutils directory into the current directory:
+cp diffutils/quote-3.0-patch.txt .
+
+Then, use the diff command to compare the two patch and put the output into a file:
+diff -u quote-3.0-test.txt quote-3.0-patch.txt > cmp.diff
+
+By inspection, there are a lot of changes between them, but most are the change of ` into '.
+Therefore, the patch to the diff command works successfully.

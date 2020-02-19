@@ -1,0 +1,161 @@
+Lab4
+1. Build the old version of coreutils as-is
+Download and unzip the coreutils-with-bug.tar:
+wget http://web.cs.ucla.edu/classes/spring19/cs35L/assign/coreutils-with-bug.tar.gz
+tar -xzvf coreutils-with-bug.tar.gz
+CD into it
+Make a directory for installation by 'mkdir ~/coreutilsInstall2'
+Read the INSTALL, and build with prefix with the command as followed:
+./configure --prefix=/u/eng/class/classwli/coreutilsInstall2
+make
+But it generates the error message as followed:
+utimens.h:2:5: error: conflicting types for 'futimens'
+ int futimens (int, char const *, struct timespec const [2]);
+     ^
+In file included from utimecmp.h:25:0,
+                 from utimecmp.c:25:
+/usr/include/sys/stat.h:373:12: note: previous declaration of 'futimens' was here
+ extern int futimens (int __fd, const struct timespec __times[2]) __THROW;
+            ^
+make[3]: *** [utimecmp.o] Error 1
+make[3]: Leaving directory `/w/home.25/class/classwli/coreutils-with-bug/lib'
+make[2]: *** [all] Error 2
+make[2]: Leaving directory `/w/home.25/class/classwli/coreutils-with-bug/lib'
+make[1]: *** [all-recursive] Error 1
+make[1]: Leaving directory `/w/home.25/class/classwli/coreutils-with-bug'
+make: *** [all] Error 2
+
+2. Patch and make
+Download the patch file:
+http://web.cs.ucla.edu/classes/spring19/cs35L/assign/coreutils.diff
+Then patch:
+patch -p0 < coreutils.diff
+Then make and Install:
+make
+make install
+
+3. Reproduce the problem
+Use the following command:
+   $ tmp=$(mktemp -d)
+   $ cd $tmp
+   $ touch -d '1918-11-11 11:00 GMT' wwi-armistice
+   $ touch now
+   $ sleep 1
+   $ touch now1
+   $ TZ=UTC0 ls -lt --full-time wwi-armistice now now1
+Which creates a temporary directory and saved it to a variable called tmp.
+Then we change directory into this temporary directory, and created three files with different dates and time.
+We can get the following output:
+-rw-r--r-- 1 classwli class 0 2019-04-30 21:22:53.575777276 +0000 now1
+-rw-r--r-- 1 classwli class 0 2019-04-30 21:22:39.626535840 +0000 now
+-rw-r--r-- 1 classwli class 0 1918-11-11 11:00:00.000000000 +0000 wwi-armistice
+Then, we use the command to call the installed version of ls:
+$ TZ=UTC0 ~/coreutilsInstall2/bin/ls -lt --full-time wwi-armistice now now1
+And the output is as followed:
+-rw-r--r-- 1 classwli class 0 1918-11-11 11:00:00.000000000 +0000 wwi-armistice
+-rw-r--r-- 1 classwli class 0 2019-04-30 21:22:53.575777276 +0000 now1
+-rw-r--r-- 1 classwli class 0 2019-04-30 21:22:39.626535840 +0000 now
+
+The difference is that the order of these three dates is wrong in the second case. 
+'wwi-armistice' should be the least recent date and be put at the bottom of the list, instead of being the most recent one. 
+
+4. Find the bug
+First we change the directory and open the ls.c:
+cd ~/coreutils-with-bug/src
+emacs ls.c
+We find that the c file has a lot of function, which is hard to track. So we use the gdb debugger:
+gdb ./ls
+First we get all the functions: 
+(gdb) info func
+And we noticed that there is a lot of functions containing keyword 'time'.
+So, we set three breakpoints on the functions about comparing time:
+(gdb) b compare_atime
+(gdb) b compare_ctime
+(gdb) b compare_mtime
+And we run the program:
+(gdb) r -lt'
+which shows that it break at the breakpoint:
+Breakpoint 3, compare_mtime (a=0x62b260, b=0x62b3c0) at ls.c:2884
+2884	static int compare_mtime (V a, V b) { return cmp_mtime (a, b, xstrcoll); }
+Hence we know that compare_mtime is the function that has been called and may have bug.
+
+5. Find the function
+keep running the program step by step:
+(gdb) si
+timespec_cmp (b=..., a=...) at ../lib/timespec.h:49
+49	  return diff ? diff : a.tv_nsec - b.tv_nsec;
+(gdb) si
+0x00000000004064b7	49	  return diff ? diff : a.tv_nsec - b.tv_nsec;
+And we notice that the function timespec_cmp might have problem.
+So we list the function timespec_cmp:
+(gdb) list timespec_cmp43	
+/* Return negative, zero, positive if A < B, A == B, A > B, respectively.
+44	   Assume the nanosecond components are in range, or close to it.  */
+45	static inline int
+46	timespec_cmp (struct timespec a, struct timespec b)
+47	{
+48	  int diff = a.tv_sec - b.tv_sec;
+49	  return diff ? diff : a.tv_nsec - b.tv_nsec;
+50	}
+51	
+52	# if ! HAVE_DECL_NANOSLEEP
+And it could probably have overflow
+
+6. Fix the function
+Quit the gdb mode, and 'cd ~/coreutils-with-bug/lib'
+Find the file containing the function timespec_cmp by
+ls | grep 'timespec'
+And it shows that there is a file named timespec.h.
+Create a copy of it and open it:
+cp timespec.h timespec_patch.h
+emacs timespec_patch.h
+Change the code of the function as followed:
+timespec_cmp (struct timespec a, struct timespec b)
+{
+  if(a.tv_nsec==b.tv_nsec)
+    return 0;
+  return a.tv_nsec < b.tv_nsec ? -1:1;
+}
+Then save and exit the emacs mode.
+Create a patch file and copy it to desktop:
+diff -u timespec.h timespec_patch.h>lab4.diff
+cp lab4.diff ~
+change directory with 'cd ~/coreutils-with-bug/lib'
+Patch the timespec.h:
+patch -p0 < lab4.diff
+
+7. Check
+Make a new directory for installation and change directory:
+mkdir ~/coreutilsNew
+cd ~/coreutils-with-bug
+Remake the coreutils with this new prefix:
+./configure --prefix=/u/eng/class/classwli/coreutilsNew
+make
+make install
+
+Cd into $temp again with 'cd $tmp'
+This time, use the newly installed ls:
+~/coreutilsNew/bin/ls -lt --full-time wwi-armistice now now1
+And it is the following output:
+-rw-r--r-- 1 classwli class 0 2019-04-30 14:22:39.626535840 -0700 now
+-rw-r--r-- 1 classwli class 0 2019-04-30 14:22:53.575777276 -0700 now1
+-rw-r--r-- 1 classwli class 0 1918-11-11 03:00:00.000000000 -0800 wwi-armistice
+
+It has the correct order based on time, which shows that the modified version of ls fix the bug.
+
+8. Test
+Instead of using the $tmp directory, create a new directory on SEASnet and test with the already-installed touch and ls utilities:
+   $ rm -rf $tmp
+   $ mkdir testls
+   $ cd testls
+   $ touch -d '1918-11-11 11:00 GMT' wwi-armistice
+   $ touch now
+   $ sleep 1
+   $ touch now1
+   $ ls -lt --full-time wwi-armistice now now1
+And we have the following output:
+-rw-r--r-- 1 classwli class 0 2054-12-17 09:28:16.000000000 -0800 wwi-armistice
+-rw-r--r-- 1 classwli class 0 2019-04-30 15:43:05.823846000 -0700 now1
+-rw-r--r-- 1 classwli class 0 2019-04-30 15:42:54.959789000 -0700 now
+Thus we noticed that instead of having year 1918, it shows the year 2054. The number of past years is truncated, and it is probably because that the time in the past has a limitation on the SEASnet.
+

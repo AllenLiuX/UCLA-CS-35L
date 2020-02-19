@@ -1,0 +1,110 @@
+Exercise 1.1
+1. e m a c s space e x e r 1 . h t m l enter
+2. M-s w H T M L
+3. M-s w s c a v e n g e r M-b
+4. M-s w s e l f - r e f e r e n t i a l M-b
+5. M-s w a r r o w M-b
+6. C-e
+7. C-a
+10. C-x C-c
+
+Exercise 1.2
+1. e m a c s space e x e r 2 . h t m l enter
+2. M-g g 1 8 Shift-C-2 C-n delete
+3. M-s w d e l e t e - m e C-a Shift-C-2 C-n delete
+4. M-s w h t t p s : / / e n . w i k i p e d i a . o r g / w i k i / H T M L _ c o m m e n t # C o m m e n t s 
+   M-f M-s w h t t p s : / / e n . w i k i p e d i a . o r g / w i k i / H T M L _ c o m m e n t # C o m m e n t s C-p M-a Shift-C-2 C-n C-n C-n delete
+5. C-M-s < ! M-b M-b C-d C-d C-d C-d C-d C-d C-d 
+   C-M-s < ! C-a Shift-C-2 C-n C-n C-n C-n delete
+   C-M-s < ! C-a Shift-C-2 C-n delete
+
+Exercise 1.3
+1. e m a c s space e x e r 3 . h t m l enter
+2. M-s w A s s i g n m e n t space 1 enter delete 4 2
+   M-s w A s s i g n m e n t space 1 enter delete 4 2
+3. C-x [ M-s w U T F - 8 M-delete M-delete U S - A S C I I
+4. C-x [ C-M-s [ ^ [ : a s c i i : ] ] C-a Shift-C-2 C-n delete
+5. C-x [ C-M-s < / o l > enter enter
+
+Exercise 1.4
+1. c a t space e x e r 2 . h t m l space e x e r 2 . d i f f space > e x e r 4 . h t m l enter 
+2. e m a c s space e x e r 4 . h t m l
+3. C-x ] Shift-C-2 C-p C-f M-w M-g g 408 C-y
+4. C-M-s < ! C-b C-b Shift-C-2 C-e M-w M-g g 18 C-y enter
+   C-M-s < ! C-M-s C-M-s C-b C-b Shift-C-2 C-e M-w M-g g 127 C-y enter
+   C-M-s < ! C-M-s C-M-s C-M-s C-b C-b Shift-C-2 C-n C-n C-n M-w M-g g 352 C-y delete
+   C-M-s < ! C-M-s C-M-s C-M-s C-M-s C-b C-b Shift-C-2 C-f C-f C-f C-f C-f C-f C-f M-w M-g g 399 M-f M-f M-f M-f C-y
+   C-M-s < ! C-M-s C-M-s C-M-s C-M-s C-M-s C-b C-b Shift-C-2 C-n C-n C-n C-n C-b M-w M-g g 399 C-y
+5. C-M-s - - - space e x e r 1 C-a Shift-C-2 M-> delete
+6. C-x u
+7. - - > C-M-r - - - space e x e r C-a < ! - - 
+8. M-< C-M-s < o l > C-M-s C-M-s C-M-s C-M-s C-M-s C-M-s C-M-s 
+   C-s < o l > enter M-% < o L > enter y y y y y y y 
+9. diff -u exer1.html exer4.html >exer4.diff
+
+Exercise 1.5
+1. M-x m a k e - d i r e c t o r y enter j u n k enter
+2. C-x d j u n k enter C-x C-f h e l l o . c enter
+   # i n c l u d e space < s t d i o . h > enter
+   i n t enter
+   m a i n space ( v o i d ) enter
+   { enter
+   space space i n t space c space = space g e t c h a r space ( ) ; enter
+   space space i f space ( c space < space 0 ) enter
+   space space space space { enter
+   space space space space space space I f space ( f e r r o r space ( s t d i n ) ) enter
+   space space space space space space space space p e r r o r space ( " s t d i n " ) ; enter
+   space space space space space space e l s e enter
+   space space space space space space space space f p r i n t f space ( s t d e r r , space " E O F space o n space i n p u t \ n " ) ; enter
+   space space space space space space r e t u r n space 1 ; enter
+   space space space space } enter
+   space space i f space ( p u t c h a r space ( c ) space < space 0 space | | space f c l o s e space ( s t d o u t ) space ! = space 0 ) enter
+   space space space space { enter
+   space space space space space space p e r r o r space ( " s t d o u t " ) ; enter
+   space space space space space space r e t u r n space 1 ; enter
+   space space space space } space
+   space space r e t u r n space 0 ; enter
+   }
+
+3. M-x c o m p i l e Enter C-@ C-a Delete g c c space h e l l o . c space - o space h e l l o Enter
+4. C-x b h e l l o . o u t Enter
+   C-u M-! . / h e l l o Enter
+5. C-@ M-> M-w C-x C-f K e y 1 . t x t Enter C-y
+#include <stdio.h>
+int
+main (void)
+{
+  int c = getchar ();
+  if (c < 0)
+    {
+      if (ferror (stdin))
+        perror ("stdin");
+      else
+        fprintf (stderr, "EOF on input\n");
+      return 1;
+    }
+  if (putchar (c) < 0 || fclose (stdout) != 0)
+    {
+      perror ("stdout");
+      return 1;
+    }
+  return 0;
+}
+
+Exercise 1.6
+1. C-x b * s c r a t c h * enter
+2. ( r a n d o m Space " 8 0 5 - 1 5 2 - 6 0 2 " ) C-j
+3. ( s e t q space x space ( r a n d o m ) ) C-j ( s e t q space x space ( r a n d o m ) )  C-j
+4. ( * space x space y ) C-j //the result is not correct
+5. There is no difference, the result is also incorrect
+6. No, they are not random in the mathematical sense. 
+7. The probability is P(x*y < -2^29 || x*y > 2^29)
+
+
+
+
+
+
+
+
+

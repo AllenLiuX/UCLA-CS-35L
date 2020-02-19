@@ -1,0 +1,132 @@
+Shell Example
+
+#!/bin/sh
+
+grep -E '<td[^>]*>.+'|\
+sed -n '1~2p' |\
+sed 's/<[^>]*>//g' | \
+sed -e "s/\`/\'/g" | \
+sed -e "s/\,/\n/g" | \
+sed -e "s/ /\n/g" | \
+sed '/^$/d' | \
+sed -e 's/\(.*\)/\L\1/' | \
+sed '/b\|c\|d\|f\|g\|j\|q\|r\|s\|t\|v\|x\|y\|z/d' | \
+sed "/[^a-z^A-Z^\']/d" | \
+sort -u
+
+==================================
+#!/bin/sh
+First=$1
+Second=$2
+if [ -z $First ]
+then
+  First="."
+fi
+if [ -n "$Second" ]
+then
+  echo "Error: More than one input operand" >&2
+  exit 1
+fi
+if [ ! -d "$First" ]
+then
+  echo "Error: $First is not a directory" >&2
+  exit 1
+fi
+if [ ! -r "$First" ]
+then
+  echo "Error: $First is not readable" >&2
+  exit 1
+fi
+T=`echo $First | grep "^-"`
+if [ -n "$T" ]
+then
+  echo "Error: $First starts with - " >%2
+  exit 1
+fi
+
+function func1 {
+  dir=$1
+  cd $dir
+  D=`ls -a | sort`
+
+  declare -a ARRAY
+  let count=0
+
+  for F in $D
+  do
+    R1=`echo $F | sed 's/[a-zA-Z0-9._]//g' | sed 's/-//g' | sed '/^$/d'`
+    R2=`echo $F | grep "^-"`
+    R3=`echo $F | grep "^\."`
+    R4=`echo $F | sed 's/^.\{,14\}//g' | sed '/^$/d' `
+    if [ -n "$R1" ]
+    then
+      echo "$F"
+      continue
+    fi
+    if [ -n "$R2" ]
+    then
+      echo "$F"
+      continue
+    fi
+    if [ -n "$R4" ]
+    then
+      echo "$F"
+      continue
+    fi
+    if [ -n "$R3" ]
+    then
+#      if [ $R3!="." -a $R3!=".." ]
+      if test $R3 != "." -a $R3 != ".."
+      then
+        echo "$F"
+        continue
+      fi
+    fi
+    ARRAY[$count]=`echo "$F" | tr A-Z a-z`
+    let count=count+1
+  done
+
+#for (( k=0; k<$count; k++ ))
+#do
+#  echo "$k: ${ARRAY[$k]}"
+#done
+#echo '+++++++++'
+
+for (( i=0; i<$count; i++ ))
+do
+    for (( j=i+1; j<$count; j++ ))
+    do
+        if test ${ARRAY[$i]} = ${ARRAY[$j]}
+        then
+            echo "${ARRAY[$i]}"
+        fi
+    done
+done
+
+#  SD=`ls -l | grep "^d"| sed 's/^d.\{45\}//g' | sed '/^$/d'`
+#get the directories to recursively call the funtion
+  SD=`find -maxdepth 1 -mindepth 1 -type d | sed 's/.\///g'| sed '/^$/d'`
+  if [ -z "$SD" ]
+  then
+    cd ..
+    return
+  fi
+#  echo -e '-------'
+#  echo "$SD"
+#  echo -e '-------'
+
+  for SF in $SD #traverse each subdirectory
+  do
+if [ ! -d "$SF" ]
+then
+  echo "$dir" >&2
+  echo "Error: $SF is not a directory" >&2
+  continue
+fi
+    func1 $SF
+  done
+
+cd ..
+}
+
+func1 $First

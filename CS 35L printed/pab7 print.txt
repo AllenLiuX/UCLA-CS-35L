@@ -1,0 +1,180 @@
+1. Download and test
+Get the file using wget after login to the server:
+$ wget http://web.cs.ucla.edu/classes/spring19/cs35L/assign/simpgmp.c
+Then, compile it with gcc:
+$ gcc simpgmp.c -lgmp -o simpgmp
+Hence we get the object file named "simpgmp". Then we test it:
+$ ./simpgmp
+But it shows the output "./simpgmp: usage: ./simpgmp exponent". So we test it with exponents:
+$ ./simpgmp 3
+And it output 8, which is the 2 to the 3rd power. Therefore, it works. 
+
+2. Test with test case
+First we test with 2**24:
+$ ./simpgmp 24
+And it shows output 16777216, which is correct.
+Then we test with 2**(2**24):
+$ ./simpgmp 16777216
+And it shows a very long output starts with "1818" and ends with "7536".
+In order to count the decimal digits, we use wc -m command to count the characters:
+$ ./simpgmp 16777216 | wc -m
+But it shows the output 5050447, which is off by 1 with the correct result.
+By inspection, we noticed that the wc command may count the zero byte, so the decimal digits of 2**(2**24) computed by simpgmp was indeed 5050446, which is correct.
+
+3. Test with ldd
+Use ldd to inspect the simpgmp:
+$ ldd simpgmp
+Which shows the following output:
+linux-vdso.so.1 =>  (0x00007ffee1bed000)
+	libgmp.so.10 => /lib64/libgmp.so.10 (0x00007fa14e312000)
+	libc.so.6 => /lib64/libc.so.6 (0x00007fa14df45000)
+	/lib64/ld-linux-x86-64.so.2 (0x00007fa14e58a000)
+
+4. Test with strace
+Use strace to inspect the system calls that the program takes:
+$ strace ./simpgmp 24
+Which has the following output:
+execve("./simpgmp", ["./simpgmp", "24"], [/* 43 vars */]) = 0
+brk(NULL)                               = 0x14b1000
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f5e8fe31000
+access("/etc/ld.so.preload", R_OK)      = -1 ENOENT (No such file or directory)
+open("/etc/ld.so.cache", O_RDONLY|O_CLOEXEC) = 3
+fstat(3, {st_mode=S_IFREG|0644, st_size=168106, ...}) = 0
+mmap(NULL, 168106, PROT_READ, MAP_PRIVATE, 3, 0) = 0x7f5e8fe07000
+close(3)                                = 0
+open("/lib64/libgmp.so.10", O_RDONLY|O_CLOEXEC) = 3
+read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\200\304\0\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0755, st_size=495720, ...}) = 0
+mmap(NULL, 2584736, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f5e8f999000
+mprotect(0x7f5e8fa0f000, 2093056, PROT_NONE) = 0
+mmap(0x7f5e8fc0e000, 12288, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x75000) = 0x7f5e8fc0e000
+close(3)                                = 0
+open("/lib64/libc.so.6", O_RDONLY|O_CLOEXEC) = 3
+read(3, "\177ELF\2\1\1\3\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\340$\2\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0755, st_size=2151672, ...}) = 0
+mmap(NULL, 3981792, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f5e8f5cc000
+mprotect(0x7f5e8f78e000, 2097152, PROT_NONE) = 0
+mmap(0x7f5e8f98e000, 24576, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1c2000) = 0x7f5e8f98e000
+mmap(0x7f5e8f994000, 16864, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7f5e8f994000
+close(3)                                = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f5e8fe06000
+mmap(NULL, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f5e8fe04000
+arch_prctl(ARCH_SET_FS, 0x7f5e8fe04740) = 0
+mprotect(0x7f5e8f98e000, 16384, PROT_READ) = 0
+mprotect(0x7f5e8fc0e000, 8192, PROT_READ) = 0
+mprotect(0x600000, 4096, PROT_READ)     = 0
+mprotect(0x7f5e8fe32000, 4096, PROT_READ) = 0
+munmap(0x7f5e8fe07000, 168106)          = 0
+brk(NULL)                               = 0x14b1000
+brk(0x14d2000)                          = 0x14d2000
+brk(NULL)                               = 0x14d2000
+fstat(1, {st_mode=S_IFCHR|0620, st_rdev=makedev(136, 43), ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f5e8fe30000
+write(1, "16777216\n", 916777216
+)               = 9
+exit_group(0)                           = ?
++++ exited with 0 +++
+
+Among the system calls above, ... are related to dynamic linking. 
+
+5. Test with commands produced by awk
+Use the following command including my uid to test the program:
+$ ls /usr/bin | awk 'NR%101==805152602%101'
+Which has the following output:
+analyze
+ca-legacy
+collateindex.pl
+db47_codegen
+dtrace
+ffcfstress
+getent
+gresource
+gvfs-trash
+igawk
+jstack
+kpasswd
+libmcrypt-config
+makekdewidgets4
+namei
+notify-send
+pamarith
+passwd.20150824
+pfbtopfa
+pmafm
+po2symb
+ppmtopuzz
+rc2po
+rpmdev-vercmp
+sgmlspl
+stdbuf
+texconfig-dialog
+usx2yloader
+xerces-j2-version
+yum-groups-manager
+
+First, I cd into /usr/bin:
+& cd /usr/bin
+Then, I examine each code with ldd. For example, '$ldd analyze" gives the following output:
+	linux-vdso.so.1 =>  (0x00007fff127c3000)
+	libhunspell-1.3.so.0 => /lib64/libhunspell-1.3.so.0 (0x00007fe83aa66000)
+	libstdc++.so.6 => /lib64/libstdc++.so.6 (0x00007fe83a75f000)
+	libm.so.6 => /lib64/libm.so.6 (0x00007fe83a45d000)
+	libgcc_s.so.1 => /lib64/libgcc_s.so.1 (0x00007fe83a247000)
+	libc.so.6 => /lib64/libc.so.6 (0x00007fe839e7a000)
+	/lib64/ld-linux-x86-64.so.2 (0x00007fe83acca000)
+However, while some the other commands yield similar output showing the shared library dependencies, there are some showing error messages. 
+When I test on ca-legacy by '$ldd ca-legacy', it yields error message:
+	not a dynamic executable
+In order to examine the error, I check the file:
+$file ca-legacy
+ca-legacy: POSIX shell script, ASCII text executable
+Which says that the file is a POSIX shell script. Therefore, we can not check its use of shared libraries.
+
+Besides, other file issuing same error message, and their file types are as followed:
+$ file collateindex.pl
+collateindex.pl: Perl script, ASCII text executable
+$ file dtrace
+dtrace: Python script, ASCII text executable
+$ file gvfs-trash
+gvfs-trash: POSIX shell script, ASCII text executable
+$ file igawk
+igawk: POSIX shell script, ASCII text executable
+$ file libmcrypt-config 
+libmcrypt-config: POSIX shell script, ASCII text executable
+$ file pfbtopfa 
+pfbtopfa: POSIX shell script, ASCII text executable
+$ file pmafm 
+pmafm: POSIX shell script, ASCII text executable
+$ file po2symb 
+po2symb: Python script, ASCII text executable
+$ file rc2po
+rc2po: Python script, ASCII text executable
+$ file rpmdev-vercmp 
+rpmdev-vercmp: Python script, UTF-8 Unicode text executable
+$ file texconfig-dialog 
+texconfig-dialog: symbolic link to `/usr/share/texlive/texmf/scripts/tetex/texconfig-dialog.sh'
+$ file xerces-j2-version
+xerces-j2-version: POSIX shell script, ASCII text executable
+$ file yum-groups-manager
+yum-groups-manager: Python script, ASCII text executable
+
+In particular, there is one file having a different error message:
+$ldd passwd.20150824 
+ldd: error: you do not have read permission for `./passwd.20150824'
+$ file passwd.20150824 
+passwd.20150824: regular file, no read permission
+
+
+6. Get a sorted list
+In order to get all the dynamic libraries without duplications, I wrote a shell script as followed:
+#!/bin/bash                                                                     
+LC_ALL=C
+
+for file in "$(ls /usr/bin | awk 'NR%101==805152602%101')";
+do
+    p=`which $file`
+    ldd $p
+done|
+sed '/not a dynamic/d'|
+sed '/^\/usr\/bin/d'|
+sort -u

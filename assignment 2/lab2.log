@@ -1,0 +1,52 @@
+1. I changed the locale by using "export LC_ALL='C'".
+2. I checked the locale by using "locale" and made sure that all the setting is C.
+3. I sorted /usr/share/dict/words and put the result into words file by usng "sort /usr/share/dict/words > words".
+4. I get the content on the assignment page by using "wget http://web.cs.ucla.edu/classes/spring19/cs35L/assign/assign2.html"
+5. I used the assign2.html as the input to test the six command of tr by using commands like " cat assign2.html | tr -c 'A-Za-z' '[\n*]'"
+The six outputs are:
+    1) each word accupies a line, and many blank lines within lines with words;
+    2) each word accupies a line without blank line;
+    3) each word accupies a line without blank line, and is sorted in alphebet order;
+    4) each word accupies a line without blank line, sorted in alphebet order, without repeated words;
+    5) all the words are listed in alphebet order with a line, while words appears only in assign2.html shown in the first column, words only in words appears shown in the second column,and words appears in both assign2.html and words shown in third colunm;
+    6) all the words that are in the assign2.html but not in words are listed in the alphebet order without repetition.
+6. I made a sh file named buildwords by "touch buildwords.sh"
+7. I scripted the buildwords after "vi buildwords.sh" with the following steps:
+   1) "#!/bin/sh" to set the correct environment for sh scripting;
+   2) "grep -E '<td[^>]*>.+'|\" to exactly match the lines with zero one or more characters bwtween <td and > so that all the lines are the lines contain Hawaiian words and English words in turn; //I did NOT match the </td> at the end of the line because some lines have </td> on a new line, and it messes up the alternating sequence of English and Hawaiian lines.
+   3) "sed -n '1~2p' |\" to delete the even lines which contain English words;
+   4) "sed 's/<[^>]*>//g' | \" to remove all the HTML tags with only Hawaiian and English words left;
+   5) "sed -e "s/\`/\'/g" | \" to replace all the ` with ';
+   6) "sed -e "s/\,/\n/g" | \" to replace all the , with a new line;
+   7) "sed -e "s/ /\n/g" | \" to replace all the space with a new line so that each word takes a line
+   8) "sed '/^$/d' | \" to delete all the empty lines;
+   9) "sed -e 's/\(.*\)/\L\1/' | \" to make all the characters into lower case;
+   10) "sed '/b\|c\|d\|f\|g\|j\|q\|r\|s\|t\|v\|x\|y\|z/d' | \" to delete all the lines with non-hawaiian characters
+   11) "sed "/[^a-z^A-Z^\']/d" | \" to delete all the lines containing chracters that are not alphabet or ';
+   12) "sort -u" to sort the words in alphabet order and delete all the repeated lines;
+   In all, the script is as followed:
+   #!/bin/sh
+   grep -E '<td[^>]*>.+'|\
+   sed -n '1~2p' |\
+   sed 's/<[^>]*>//g' | \
+   sed -e "s/\`/\'/g" | \
+   sed -e "s/\,/\n/g" | \
+   sed -e "s/ /\n/g" | \
+   sed '/^$/d' | \
+   sed -e 's/\(.*\)/\L\1/' | \
+   sed '/b\|c\|d\|f\|g\|j\|q\|r\|s\|t\|v\|x\|y\|z/d' | \
+   sed "/[^a-z^A-Z^\']/d" | \
+   sort -u
+
+8. get the content of the "Hawaiian to English" webpage by "wget https://www.mauimapp.com/moolelo/hwnwdshw.htm" which stores the contents in a new file named hwnwdshw.htm
+9. change the permission of buildwords by "chmod u+x buildwords"
+10. build the Hawaiian dictionary by "./buildwords < hwnwdseng.htm > hwords", which creates a file named hwords that contains all the Hawaiian words
+11. write the Hawaiian spell check, which is "tr -cs "pk\'mnwlhaeiou" '[\n*]' | sort -u | comm -23 - hwords"
+12. Store all the distinct words that HAWAIIANCHECKER reports as misspelled into MisHaw by "cat assign2.html | tr '[:upper:]' '[:lower:]' | tr -cs "pkmnwlhae'iou" '[\n*]' | sort -u | comm -23 - hwords > MisHaw"
+13. Store all the distinct words that ENGLISHCHECKER reports as misspelled into MisEng by "cat assign2.html | tr '[:upper:]' '[:lower:]' | tr -cs 'a-zA-Z' '[\n*]' | sort -u | comm -23 - words > MisEng"
+14. Count all the words that ENGLISHCHECKER reports as misspelled but HAWAIIANCHECKER does not by "cat MisEng | comm -23 - MisHaw | wc -l", which is 35, and the words are like "andrews", "ctype".
+15. Count all the words that HAWAIIANCHECKER reports as misspelled but ENGLISHCHECKER does not by "cat MisHaw | comm -23 - MisEng | wc -l", which is 200, and the words are like "un", "ail".
+
+Brief Log For Homework:
+I first detach the possible errors and stderr them, then use a recursive function to check the syntax of the files in the current directory, and recursively use "cd" to check each subdirectory and "cd .." after the end of the function.
+ 

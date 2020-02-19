@@ -1,0 +1,50 @@
+Q1:
+The patch improves the performance of ls.
+Firstly, it fixes the problem of overriding. 
+When we call ls -aA, it no longer generates '.' and '..', 
+and that's the actual effect that we want when calling the command.
+However, it makes the time to process the command longer. 
+For example, when we call 'time ./ls -aA .', 
+it shows that it takes 0.004s real time, 
+while the command './ls -Aa .' takes 0.003s.
+
+Q2:
+We should watch out the behavior when calling commands involving 
+'ls -aA', because it no longer performs as before with '.' and 
+'..' been listed.
+
+Q3:
+When we test the randline.py with an empty file by: 
+'python randline.py -n 1 /dev/null', 
+it gives error as followed:
+
+Traceback (most recent call last):
+  File "randline.py", line 70, in <module>
+    main()
+  File "randline.py", line 64, in main
+    sys.stdout.write(generator.chooseline())
+  File "randline.py", line 34, in chooseline
+    return random.choice(self.lines)
+  File "/usr/lib64/python2.7/random.py", line 274, in choice
+    return seq[int(self.random() * len(seq))]  
+# raises IndexError if seq is empty
+IndexError: list index out of range
+
+It is because the function 'random.choice' is called when the program is run, 
+and at least one line should be taken as an argument. 
+However, there is no line in an empty file, 
+so it fails to take a line with random.py: 
+when the seq is empty, the IndexError is therefore raised. 
+
+Q4:
+When we use python3 to run, it gives error as followed:
+
+  File "randline.py", line 65
+    except IOError as (errno, strerror):
+                      ^
+SyntaxError: invalid syntax
+
+It is because the code 'except IOError as (errno, strerror):' 
+is the code syntax for python2, 
+which cannot be recognized by python3. 
+So the syntax fails to be run by python3.
